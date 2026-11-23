@@ -4,29 +4,36 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SRS Calendar Admin</title>
+
 <style>
 body {
     background:#151515;
     color:white;
     font-family:Arial,sans-serif;
     padding:20px;
-    max-width:650px;
+    max-width:700px;
     margin:auto;
 }
-h1 {color:#e32636}
+h1 {color:#e32636;text-align:center}
 .card {
     background:#252525;
     padding:20px;
     border-radius:12px;
     margin-bottom:20px;
 }
+label {
+    display:block;
+    margin-top:12px;
+    color:#ddd;
+}
 input,select,button {
     width:100%;
-    padding:13px;
-    margin:7px 0 15px;
-    border-radius:6px;
+    padding:14px;
+    margin:7px 0;
+    border-radius:7px;
     border:0;
     box-sizing:border-box;
+    font-size:16px;
 }
 button {
     background:#d71920;
@@ -34,24 +41,43 @@ button {
     font-weight:bold;
     cursor:pointer;
 }
+button:hover {background:#a81018}
 .event {
     background:#333;
-    padding:12px;
-    margin:10px 0;
+    padding:14px;
+    margin:12px 0;
     border-radius:8px;
+    overflow-wrap:anywhere;
 }
+.delete {
+    background:#555;
+    margin-top:10px;
+}
+#message {
+    padding:12px;
+    border-radius:7px;
+    margin:10px 0;
+    display:none;
+}
+.success {background:#14532d}
+.error {background:#7f1d1d}
 </style>
 </head>
+
 <body>
 
 <h1>🏁 SRS CALENDAR</h1>
-<p>Panel administratora Sim Racing Squad</p>
+<p style="text-align:center">Panel administratora Sim Racing Squad</p>
 
 <div class="card">
+
 <h2>➕ Dodaj wydarzenie</h2>
 
+<form id="eventForm">
+
 <label>Nazwa wydarzenia</label>
-<input id="name" placeholder="SRS RACE NIGHT">
+<input id="name" type="text"
+placeholder="SRS TRENING GR.3" required>
 
 <label>Rodzaj wydarzenia</label>
 <select id="type">
@@ -61,47 +87,76 @@ button {
 </select>
 
 <label>Data</label>
-<input type="date" id="date">
+<input id="date" type="date" required>
 
 <label>Godzina</label>
-<input type="time" id="time">
+<input id="time" type="time" required>
 
 <label>Tor</label>
-<input id="track" placeholder="Nürburgring">
+<input id="track" type="text"
+placeholder="Nürburgring">
 
 <label>Klasa samochodów</label>
-<input id="car" placeholder="Gr.3">
+<input id="car" type="text"
+placeholder="Gr.3">
 
-<button onclick="addEvent()">DODAJ WYDARZENIE</button>
+<button type="submit">DODAJ WYDARZENIE</button>
+
+</form>
+
+<div id="message"></div>
+
 </div>
 
 <div class="card">
+
 <h2>📅 Zaplanowane wydarzenia</h2>
-<div id="events"></div>
-<button onclick="downloadEvents()">POBIERZ EVENTS.JSON</button>
+
+<div id="events">Brak wydarzeń.</div>
+
+<button type="button" id="download">
+POBIERZ EVENTS.JSON
+</button>
+
 </div>
 
 <script>
+
 let events = [];
 
-function addEvent() {
+const form = document.getElementById("eventForm");
+const box = document.getElementById("events");
+const message = document.getElementById("message");
+
+function showMessage(text, success) {
+    message.textContent = text;
+    message.className = success ? "success" : "error";
+    message.style.display = "block";
+}
+
+form.addEventListener("submit", function(e) {
+
+    e.preventDefault();
+
     const name = document.getElementById("name").value.trim();
     const date = document.getElementById("date").value;
     const time = document.getElementById("time").value;
 
     if (!name || !date || !time) {
-        alert("Uzupełnij nazwę, datę i godzinę!");
+        showMessage("Uzupełnij nazwę, datę i godzinę!", false);
         return;
     }
 
-    events.push({
-        name,
-        date,
-        time,
+    const event = {
+        name: name,
+        date: date,
+        time: time,
         emoji: document.getElementById("type").value,
-        track: document.getElementById("track").value || "Do ustalenia",
-        car: document.getElementById("car").value || "Nie podano"
-    });
+        track: document.getElementById("track").value.trim() || "Do ustalenia",
+        car: document.getElementById("car").value.trim() || "Nie podano"
+    };
+
+    events.push(event);
 
     events.sort((a,b) =>
         (a.date + a.time).localeCompare(b.date + b.time)
@@ -109,49 +164,71 @@ function addEvent() {
 
     render();
 
-    document.getElementById("name").value = "";
-    document.getElementById("track").value = "";
-    document.getElementById("car").value = "";
-}
+    showMessage("✅ Wydarzenie dodane pomyślnie!", true);
+
+    form.reset();
+
+});
 
 function render() {
-    const box = document.getElementById("events");
-    box.innerHTML = "";
 
-    events.forEach((e,index) => {
+    box.replaceChildren();
+
+    if (events.length === 0) {
+        box.textContent = "Brak wydarzeń.";
+        return;
+    }
+
+    events.forEach((event,index) => {
+
         const div = document.createElement("div");
         div.className = "event";
-        div.textContent =
-            `${e.emoji} ${e.name} | ${e.date} | ${e.time} | ${e.track} | ${e.car}`;
+
+        const title = document.createElement("strong");
+        title.textContent = event.emoji + " " + event.name;
+
+        const details = document.createElement("p");
+        details.textContent =
+            "📅 " + event.date +
+            " | 🕒 " + event.time +
+            "\n🏁 " + event.track +
+            "\n🚗 " + event.car;
 
         const del = document.createElement("button");
-        del.textContent = "Usuń";
-        del.onclick = () => {
+        del.className = "delete";
+        del.textContent = "🗑️ Usuń wydarzenie";
+
+        del.addEventListener("click", () => {
             events.splice(index,1);
             render();
-        };
+            showMessage("Wydarzenie usunięte.", true);
+        });
 
-        div.appendChild(del);
+        div.append(title,details,del);
         box.appendChild(div);
+
     });
 
-    if (!events.length) {
-        box.textContent = "Brak wydarzeń.";
-    }
 }
 
-function downloadEvents() {
+document.getElementById("download").addEventListener("click", () => {
+
     const blob = new Blob(
         [JSON.stringify(events,null,2)],
         {type:"application/json"}
     );
 
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
+
+    a.href = url;
     a.download = "events.json";
     a.click();
-    URL.revokeObjectURL(a.href);
-}
+
+    URL.revokeObjectURL(url);
+
+});
+
 </script>
 
 </body>
