@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SRS Calendar Admin</title>
+<style>
+body {
+    background:#151515;
+    color:white;
+    font-family:Arial,sans-serif;
+    padding:20px;
+    max-width:650px;
+    margin:auto;
+}
+h1 {color:#e32636}
+.card {
+    background:#252525;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+}
+input,select,button {
+    width:100%;
+    padding:13px;
+    margin:7px 0 15px;
+    border-radius:6px;
+    border:0;
+    box-sizing:border-box;
+}
+button {
+    background:#d71920;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
+.event {
+    background:#333;
+    padding:12px;
+    margin:10px 0;
+    border-radius:8px;
+}
+</style>
+</head>
+<body>
+
+<h1>🏁 SRS CALENDAR</h1>
+<p>Panel administratora Sim Racing Squad</p>
+
+<div class="card">
+<h2>➕ Dodaj wydarzenie</h2>
+
+<label>Nazwa wydarzenia</label>
+<input id="name" placeholder="SRS RACE NIGHT">
+
+<label>Rodzaj wydarzenia</label>
+<select id="type">
+<option value="🏎️">Wyścig</option>
+<option value="🔧">Trening</option>
+<option value="🔴">Transmisja LIVE</option>
+</select>
+
+<label>Data</label>
+<input type="date" id="date">
+
+<label>Godzina</label>
+<input type="time" id="time">
+
+<label>Tor</label>
+<input id="track" placeholder="Nürburgring">
+
+<label>Klasa samochodów</label>
+<input id="car" placeholder="Gr.3">
+
+<button onclick="addEvent()">DODAJ WYDARZENIE</button>
+</div>
+
+<div class="card">
+<h2>📅 Zaplanowane wydarzenia</h2>
+<div id="events"></div>
+<button onclick="downloadEvents()">POBIERZ EVENTS.JSON</button>
+</div>
+
+<script>
+let events = [];
+
+function addEvent() {
+    const name = document.getElementById("name").value.trim();
+    const date = document.getElementById("date").value;
+    const time = document.getElementById("time").value;
+
+    if (!name || !date || !time) {
+        alert("Uzupełnij nazwę, datę i godzinę!");
+        return;
+    }
+
+    events.push({
+        name,
+        date,
+        time,
+        emoji: document.getElementById("type").value,
+        track: document.getElementById("track").value || "Do ustalenia",
+        car: document.getElementById("car").value || "Nie podano"
+    });
+
+    events.sort((a,b) =>
+        (a.date + a.time).localeCompare(b.date + b.time)
+    );
+
+    render();
+
+    document.getElementById("name").value = "";
+    document.getElementById("track").value = "";
+    document.getElementById("car").value = "";
+}
+
+function render() {
+    const box = document.getElementById("events");
+    box.innerHTML = "";
+
+    events.forEach((e,index) => {
+        const div = document.createElement("div");
+        div.className = "event";
+        div.textContent =
+            `${e.emoji} ${e.name} | ${e.date} | ${e.time} | ${e.track} | ${e.car}`;
+
+        const del = document.createElement("button");
+        del.textContent = "Usuń";
+        del.onclick = () => {
+            events.splice(index,1);
+            render();
+        };
+
+        div.appendChild(del);
+        box.appendChild(div);
+    });
+
+    if (!events.length) {
+        box.textContent = "Brak wydarzeń.";
+    }
+}
+
+function downloadEvents() {
+    const blob = new Blob(
+        [JSON.stringify(events,null,2)],
+        {type:"application/json"}
+    );
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "events.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+</script>
+
+</body>
+</html>
