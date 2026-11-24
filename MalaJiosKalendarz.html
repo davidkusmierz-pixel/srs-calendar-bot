@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MalaJios • Kalendarz społeczności</title>
+<style>
+:root{
+  --bg:#111318;--panel:#1b1f29;--panel2:#242a36;--text:#f4f6fb;
+  --muted:#9db4b6;--red:#ff5470;--green:#19c9bd;--blue:#4c9fe8;--gold:#f4c75e;
+  --line:#244448;--accent:#19d8ce;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% -15%,#123d40 0,#10191d 38%,#080c10 100%);color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;padding:22px}
+.app{max-width:1150px;margin:auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  border-bottom:1px solid #244448;padding:0 0 20px;margin-bottom:22px}
+.brand-wrap{display:flex;align-items:center;gap:16px}
+.srs-mark{width:82px;height:70px;display:grid;place-items:center;border-radius:19px;
+  background:linear-gradient(145deg,#050809,#111a1c);border:1px solid #1e5554;
+  box-shadow:0 8px 25px #0009,inset 0 0 18px #13c9bd18;color:#19d8ce;
+  font-family:'Brush Script MT','Segoe Script',cursive;font-weight:700;font-style:italic;
+  letter-spacing:-2px;font-size:24px;text-shadow:0 0 10px #12d6ca;transform:rotate(-3deg)}
+.brand{font-weight:900;letter-spacing:1.5px;font-size:clamp(25px,4vw,38px)}
+.brand span{color:#19d8ce}
+.sub{color:#8faeae;margin-top:6px;font-size:12px;letter-spacing:1.4px}
+button,select,input{font:inherit}
+button{border:0;border-radius:9px;padding:11px 15px;font-weight:700;cursor:pointer}
+.primary{background:linear-gradient(110deg,#245b5b,#347775);color:#e7f0ef;border:1px solid #477b78;box-shadow:none}
+.primary:hover{background:linear-gradient(110deg,#2b6967,#3b8580);filter:none}
+.primary:disabled{opacity:.58;cursor:wait}
+.secondary{background:var(--panel2);color:white;border:1px solid var(--line)}
+button:hover{filter:brightness(1.06)}
+.layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,.9fr);gap:20px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+.monthbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px}
+.monthbar h2{font-size:clamp(20px,3vw,28px);margin:0;text-transform:uppercase}
+.nav{display:flex;gap:8px}
+.weekdays,.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.weekdays div{text-align:center;color:var(--muted);font-size:12px;font-weight:800;padding:8px 0}
+.day{min-height:94px;background:#242a36;border:1px solid #303746;border-radius:11px;
+  padding:9px 5px;display:flex;flex-direction:column;align-items:center;gap:7px}
+.day.empty{background:transparent;border:1px dashed #2b303b}
+.date{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:900}
+.date.event{background:#ffc857;color:#171321}
+.date.transmission{background:#8CCFE8;color:#10232b;border:1px solid #b9e8f7}
+.date.training{background:var(--green);color:#fff}
+.date.race{background:#9b7bff;color:#171321}
+.date.live{background:var(--red);color:#fff}
+.date.league{background:#9b59d0;color:#fff}
+.date.multiple{background:linear-gradient(135deg,#20c7b5 0 25%,var(--red) 25% 50%,var(--blue) 50% 75%,#ffc857 75%);color:#fff}
+.day.today{outline:2px solid #f0c44f;outline-offset:1px}
+.dayname{font-size:10px;color:#e4e8f0;text-align:center;line-height:1.2;max-width:100%;overflow-wrap:anywhere}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;color:var(--muted);font-size:13px}
+.legend span{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:#242a36;border:1px solid #303746;color:#dce4ec}
+.legend .dot{width:10px;height:10px;min-width:10px;padding:0;margin:0;border:0;border-radius:50%;display:inline-block;flex:0 0 10px}
+.legend .dot.transmission{background:#8CCFE8;border:1px solid #b9e8f7}
+.legend .dot.event{background:#ffc857}
+.legend .dot.live{background:#ff4b4b}
+.legend .dot.race{background:#9b7bff}
+h3{margin:0 0 14px;font-size:19px}
+form{display:grid;gap:10px}
+label{font-size:12px;color:var(--muted);font-weight:700}
+input,select{width:100%;padding:11px;border-radius:8px;border:1px solid var(--line);
+  background:#11151d;color:var(--text);margin-top:5px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.events{margin-top:20px}
+.event{background:#242a36;border:1px solid var(--line);border-left:5px solid var(--green);
+  padding:11px;border-radius:9px;margin-bottom:9px}
+.event.event{border-left-color:#ffc857}.event.live{border-left-color:#ff4b6e}.event.transmission{border-left-color:#8CCFE8}.event.race{border-left-color:#9b7bff}
+.event strong{display:block;margin-bottom:4px}
+.event small{color:var(--muted)}
+.event-actions{display:flex;gap:7px;margin-top:9px}
+.event-actions button{padding:6px 9px;font-size:12px}
+.emptymsg{color:var(--muted);font-size:14px}
+.note{color:var(--muted);font-size:12px;line-height:1.5;margin-top:14px}
+@media(max-width:800px){body{padding:12px}.layout{grid-template-columns:1fr}.day{min-height:76px;padding:6px 2px}.calendar,.weekdays{gap:4px}.date{width:31px;height:31px}.dayname{font-size:9px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand-wrap">
+    <div class="srs-mark" aria-label="Logo MalaJios">MalaJios</div>
+    <div><div class="brand"><span>MalaJios</span> KALENDARZ</div><div class="sub">KALENDARZ SPOŁECZNOŚCI • RAZEM SPĘDZAMY CZAS</div></div>
+  </div>
+  <div class="actions">
+    <button class="secondary" id="exportBtn">Pobierz events.json</button>
+    <button class="secondary" id="importBtn">Wczytaj events.json</button>
+    <input type="file" id="importFile" accept=".json,application/json" hidden>
+  </div>
+</header>
+
+<div class="layout">
+  <section class="panel">
+    <div class="monthbar">
+      <button class="secondary" id="prev">‹</button>
+      <h2 id="monthTitle"></h2>
+      <button class="secondary" id="next">›</button>
+    </div>
+    <div class="weekdays">
+      <div>PON</div><div>WT</div><div>ŚR</div><div>CZW</div><div>PT</div><div>SOB</div><div>ND</div>
+    </div>
+    <div class="calendar" id="calendar"></div>
+    <div class="legend">
+      <span><i class="dot transmission"></i> Transmisja</span>
+      <span><i class="dot event"></i> Wydarzenie</span>
+      <span><i class="dot live"></i> Live</span>
+            <span><i class="dot race"></i> Wyścig</span>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <h3 id="formTitle">➕ Dodaj wydarzenie</h3>
+    <form id="eventForm">
+      <input type="hidden" id="editId">
+      <label>Data<input type="date" id="date" required></label>
+      <label>Nazwa wydarzenia<input type="text" id="title" placeholder="Np. Wspólne granie" required></label>
+      <label>Rodzaj
+        <select id="type">
+          <option value="transmission">🔵 Transmisja</option>
+          <option value="event">🟡 Wydarzenie</option>
+          <option value="live">🔴 Live</option>
+          
+          <option value="race">🟣 Wyścig</option>
+        </select>
+      </label>
+      <label>Godzina (opcjonalnie)<input type="time" id="time"></label>
+      <div class="actions">
+        <button class="primary" type="submit" id="saveBtn">Zapisz wydarzenie</button>
+        <button class="secondary" type="button" id="cancelBtn" hidden>Anuluj</button>
+      </div>
+    </form>
+
+    <div style="border-top:1px solid var(--line);margin-top:20px;padding-top:16px">
+      <h3>📨 Publikacja na Discordzie</h3>
+      <label>Adres webhooka Discord
+        <input type="password" id="webhookUrl" placeholder="Wklej adres webhooka z Discorda">
+      </label>
+      <div class="actions" style="margin-top:10px">
+        <button class="primary" type="button" id="sendDiscord">Wyślij / aktualizuj kalendarz</button>
+      </div>
+      <div class="note" id="sendStatus">Kalendarz zostanie wysłany jako obraz PNG na wybrany kanał Discorda.</div>
+    </div>
+    <div class="events">
+      <h3>📅 Wydarzenia w tym miesiącu</h3>
+      <div id="eventList"></div>
+    </div>
+    <p class="note">Wydarzenia zapisują się w tej przeglądarce. Możesz wyeksportować wydarzenia do pliku <b>events.json</b> i przenieść je na inne urządzenie.</p>
+  </aside>
+</div>
+</div>
+
+<script>
+const monthNames=["Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"];
+const typeNames={transmission:"Transmisja",event:"Wydarzenie",live:"Live",race:"Wyścig"};
+const typeClasses={transmission:"transmission",event:"event",live:"live",race:"race"};
+const storageKey="malajios_community_calendar_v1";
+let events=[];
+try{events=JSON.parse(localStorage.getItem(storageKey)||"[]")}catch(e){events=[]}
+// Zachowaj starsze wpisy: pogadanki jako wydarzenia, sparingi jako wyścigi.
+events=events.map(e=>({...e,type:e.type==="pogadanka"?"event":e.type==="sparing"?"race":e.type}));
+let shown=new Date();shown.setDate(1);
+
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,"0");
+const dateKey=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
+function save(){localStorage.setItem(storageKey,JSON.stringify(events));render()}
+function eventsFor(date){return events.filter(e=>e.date===date)}
+function render(){
+  $("monthTitle").textContent=`${monthNames[shown.getMonth()]} ${shown.getFullYear()}`;
+  const grid=$("calendar");grid.innerHTML="";
+  const y=shown.getFullYear(),m=shown.getMonth();
+  const first=(new Date(y,m,1).getDay()+6)%7;
+  const days=new Date(y,m+1,0).getDate();
+  for(let i=0;i<first;i++){const el=document.createElement("div");el.className="day empty";grid.appendChild(el)}
+  for(let d=1;d<=days;d++){
+    const key=dateKey(y,m,d),list=eventsFor(key);
+    const el=document.createElement("div");el.className="day";
+    const today=new Date();
+    if(today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===d)el.classList.add("today");
+    let cls="";
+    if(list.length===1)cls=typeClasses[list[0].type]||"";
+    else if(list.length>1)cls="multiple";
+    const names=list.slice(0,2).map(e=>e.title).join(" · ");
+    el.innerHTML=`<div class="date ${cls}">${d}</div>${names?`<div class="dayname">${escapeHtml(names)}</div>`:""}`;
+    el.title=list.map(e=>`${typeNames[e.type]||"Wydarzenie"}: ${e.title}`).join("\n");
+    el.addEventListener("click",()=>{$("date").value=key;$("title").focus()});
+    grid.appendChild(el);
+  }
+  renderList();
+}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function renderList(){
+  const y=shown.getFullYear(),m=shown.getMonth();
+  const list=events.filter(e=>{const d=new Date(e.date+"T12:00:00");return d.getFullYear()===y&&d.getMonth()===m})
+    .sort((a,b)=>a.date.localeCompare(b.date)||(a.time||"").localeCompare(b.time||""));
+  $("eventList").innerHTML=list.length?list.map(e=>`
+    <div class="event ${typeClasses[e.type]||""}">
+      <strong>${escapeHtml(e.title)}</strong>
+      <small>${e.date}${e.time?" · "+e.time:""} · ${typeNames[e.type]||"Wydarzenie"}</small>
+      <div class="event-actions">
+        <button class="secondary" onclick="editEvent('${e.id}')">Edytuj</button>
+        <button class="secondary" onclick="deleteEvent('${e.id}')">Usuń</button>
+      </div>
+    </div>`).join(""):`<div class="emptymsg">Brak wydarzeń w tym miesiącu.</div>`;
+}
+function resetForm(){
+  $("eventForm").reset();$("editId").value="";$("formTitle").textContent="➕ Dodaj wydarzenie";
+  $("saveBtn").textContent="Zapisz wydarzenie";$("cancelBtn").hidden=true;
+}
+$("eventForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const id=$("editId").value||String(Date.now());
+  const item={id,date:$("date").value,title:$("title").value.trim(),type:$("type").value,
+    time:$("time").value};
+  if(!item.date||!item.title)return;
+  const idx=events.findIndex(x=>x.id===id);
+  if(idx>=0)events[idx]=item;else events.push(item);
+  shown=new Date(item.date+"T12:00:00");shown.setDate(1);
+  resetForm();save();
+});
+window.editEvent=id=>{
+  const e=events.find(x=>x.id===id);if(!e)return;
+  $("editId").value=e.id;$("date").value=e.date;$("title").value=e.title;
+  $("type").value=e.type;$("time").value=e.time||"";
+  $("formTitle").textContent="✏️ Edytuj wydarzenie";$("saveBtn").textContent="Zapisz zmiany";
+  $("cancelBtn").hidden=false;
+};
+window.deleteEvent=id=>{
+  if(confirm("Usunąć to wydarzenie?")){events=events.filter(e=>e.id!==id);save()}
+};
+$("cancelBtn").onclick=resetForm;
+$("prev").onclick=()=>{shown.setMonth(shown.getMonth()-1);render()};
+$("next").onclick=()=>{shown.setMonth(shown.getMonth()+1);render()};
+$("exportBtn").onclick=()=>{
+  const data=events.map(({id,date,title,type,time,track})=>({date,title,type:type==="transmission"?"transmisja":type==="event"?"wydarzenie":type==="live"?"live":"wyścig",time,track}));
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="events.json";a.click();URL.revokeObjectURL(a.href);
+};
+$("importBtn").onclick=()=>$("importFile").click();
+$("importFile").onchange=async e=>{
+  const file=e.target.files[0];if(!file)return;
+  try{
+    const data=JSON.parse(await file.text());
+    if(!Array.isArray(data))throw new Error();
+    events=data.map((x,i)=>({id:String(Date.now()+i),date:x.date,title:x.title||"Wydarzenie",
+      type:normalizeType(x.type||x.emoji),time:x.time||"",track:x.track||""}));
+    save();alert("Wczytano wydarzenia.");
+  }catch(err){alert("Nie udało się wczytać pliku JSON. Sprawdź jego zawartość.")}
+  e.target.value="";
+};
+function normalizeType(t){
+  t=String(t).toLowerCase();
+  if(t.includes("live")||t.includes("🔴"))return "live";
+  if(t.includes("transmis")||t.includes("stream")||t.includes("🟢")||t.includes("⚪")||t.includes("🔹"))return "transmission";
+  if(t.includes("wyścig")||t.includes("wyscig")||t.includes("race")||t.includes("sparing")||t.includes("gaming")||t.includes("🏎")||t.includes("🟣")||t.includes("🔵"))return "race";
+  if(t.includes("wydar")||t.includes("event")||t.includes("spotkan")||t.includes("meeting")||t.includes("pogadan")||t.includes("🟡"))return "event";
+  return "event";
+}
+
+// Discord webhook: ustawiany przez użytkownika i przechowywany lokalnie w tej przeglądarce.
+$("webhookUrl").value = localStorage.getItem("malajios_calendar_webhook") || "";
+
+function canvasFont(ctx, size, weight="700"){
+  ctx.font = `${weight} ${size}px Arial, sans-serif`;
+}
+function roundedRect(ctx,x,y,w,h,r,color){
+  ctx.fillStyle=color;ctx.beginPath();
+  ctx.roundRect(x,y,w,h,r);ctx.fill();
+}
+function makeCalendarPng(){
+  const canvas=document.createElement("canvas");
+  const width=1600,left=45,top=205,cellW=216,cellH=145;
+  const y=shown.getFullYear(),m=shown.getMonth();
+  const first=(new Date(y,m,1).getDay()+6)%7;
+  const count=new Date(y,m+1,0).getDate();
+  const weeks=Math.ceil((first+count)/7);
+  const monthEvents=events
+    .filter(e=>e.date && e.date.slice(0,7)===`${y}-${pad(m+1)}`)
+    .sort((a,b)=>a.date.localeCompare(b.date)||(a.time||"").localeCompare(b.time||""));
+  canvas.width=width;
+  canvas.height=top+weeks*cellH+125+Math.max(1,monthEvents.length)*48+75;
+
+  const ctx=canvas.getContext("2d");
+  const colors={transmission:"#8CCFE8",event:"#ffc857",live:"#ff4b6e",race:"#9b7bff"};
+  const labels={transmission:"TRANSMISJA",event:"WYDARZENIE",live:"Live",race:"WYŚCIG"};
+  ctx.fillStyle="#0d1222";ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#19d8ce";ctx.fillRect(0,0,width,10);
+  ctx.fillStyle="#1b1b35";ctx.fillRect(0,10,width,160);
+
+  // Logo SRS i nagłówek.
+  ctx.beginPath();ctx.arc(100,88,52,0,Math.PI*2);ctx.fillStyle="#11151d";ctx.fill();
+  ctx.lineWidth=6;ctx.strokeStyle="#20c7b5";ctx.stroke();
+  ctx.beginPath();ctx.arc(100,88,43,0,Math.PI*2);ctx.lineWidth=2;ctx.strokeStyle="#fff";ctx.stroke();
+  ctx.textAlign="center";ctx.textBaseline="middle";canvasFont(ctx,30,"900");
+  ctx.fillStyle="#fff";ctx.fillText("SRS",100,88);
+  ctx.textAlign="left";canvasFont(ctx,21,"800");ctx.fillStyle="#20c7b5";
+  ctx.fillText("MALAJIOS COMMUNITY",185,48);
+  canvasFont(ctx,43,"900");ctx.fillStyle="#fff";
+  ctx.fillText("KALENDARZ WYDARZEŃ",185,91);
+  canvasFont(ctx,23,"700");ctx.fillStyle="#c6ceda";
+  ctx.fillText(`${monthNames[m].toUpperCase()} ${y}`,185,132);
+
+  // Nagłówki dni tygodnia.
+  const weekdays=["PONIEDZIAŁEK","WTOREK","ŚRODA","CZWARTEK","PIĄTEK","SOBOTA","NIEDZIELA"];
+  weekdays.forEach((d,i)=>{
+    const x=left+i*cellW;
+    ctx.fillStyle="#7251c7";ctx.fillRect(x,top-43,cellW-3,39);
+    ctx.textAlign="center";canvasFont(ctx,14,"900");ctx.fillStyle="#fff";
+    ctx.fillText(d,x+(cellW-3)/2,top-23);
+  });
+
+  // Wyraźne oddzielenie każdej komórki oraz każdego tygodnia.
+  for(let i=0;i<weeks*7;i++){
+    const row=Math.floor(i/7),col=i%7,day=i-first+1;
+    const x=left+col*cellW,yy=top+row*cellH;
+    const inMonth=day>=1&&day<=count;
+    ctx.fillStyle=inMonth?"#f7f8fa":"#e5e8ed";
+    ctx.fillRect(x,yy,cellW-3,cellH-3);
+    ctx.strokeStyle="#8f99a9";ctx.lineWidth=2;
+    ctx.strokeRect(x,yy,cellW-3,cellH-3);
+    if(!inMonth)continue;
+
+    const list=eventsFor(dateKey(y,m,day));
+    ctx.textAlign="left";canvasFont(ctx,27,"900");ctx.fillStyle="#202735";
+    ctx.fillText(String(day),x+13,yy+27);
+    list.slice(0,4).forEach((e,index)=>{
+      const kind=["transmission","event","live","race"].includes(e.type)?e.type:"event";
+      // Gruby, długi pasek w stylu Outlooka, z lekko zaokrąglonymi końcami.
+      roundedRect(ctx,x+8,yy+45+index*12,cellW-19,8,4,colors[kind]);
+    });
+    if(list.length>4){
+      ctx.fillStyle="#202735";canvasFont(ctx,15,"900");
+      ctx.fillText(`+${list.length-4}`,x+13+4*49,yy+72);
+    }
+  }
+
+  // Mocniejsza linia oddzielająca całe tygodnie.
+  ctx.strokeStyle="#525d6d";ctx.lineWidth=4;
+  for(let r=0;r<=weeks;r++){
+    const yy=top+r*cellH-2;
+    ctx.beginPath();ctx.moveTo(left,yy);ctx.lineTo(left+7*cellW-3,yy);ctx.stroke();
+  }
+
+  // Lista wydarzeń – godzina tuż obok tytułu, bez rozciągania do prawej krawędzi.
+  const listTop=top+weeks*cellH+42;
+  ctx.fillStyle="#d93645";ctx.fillRect(45,listTop-20,width-90,3);
+  ctx.textAlign="left";canvasFont(ctx,26,"900");ctx.fillStyle="#fff";
+  ctx.fillText("WYDARZENIA",55,listTop+15);
+
+  if(monthEvents.length===0){
+    canvasFont(ctx,20,"600");ctx.fillStyle="#c6ceda";
+    ctx.fillText("Brak zaplanowanych wydarzeń.",55,listTop+65);
+  }else{
+    // Grupujemy wydarzenia według daty: jedna data, a pod nią wszystkie jej wydarzenia.
+    const groups=[];
+    monthEvents.forEach(e=>{
+      let group=groups.find(g=>g.date===e.date);
+      if(!group){group={date:e.date,items:[]};groups.push(group);}
+      group.items.push(e);
+    });
+
+    let rowY=listTop+62;
+    groups.forEach((group,groupIndex)=>{
+      const dateText=group.date.slice(8,10)+"."+group.date.slice(5,7);
+      // Wyraźny separator pomiędzy różnymi dniami.
+      if(groupIndex>0){
+        ctx.strokeStyle="#596476";ctx.lineWidth=2;
+        ctx.beginPath();ctx.moveTo(56,rowY-18);ctx.lineTo(width-56,rowY-18);ctx.stroke();
+        rowY+=8;
+      }
+
+      // Data pojawia się tylko raz dla całej grupy.
+      ctx.fillStyle="#20c7b5";ctx.fillRect(56,rowY-13,7,27);
+      ctx.textAlign="left";canvasFont(ctx,24,"900");ctx.fillStyle="#ffffff";
+      ctx.fillText(dateText,78,rowY);
+
+      group.items.forEach((e,itemIndex)=>{
+        const kind=["transmission","event","live","race"].includes(e.type)?e.type:"event";
+        const color=colors[kind];
+        const itemY=rowY+itemIndex*32;
+        ctx.fillStyle=color;ctx.fillRect(190,itemY-9,7,19);
+        ctx.textAlign="left";canvasFont(ctx,20,"900");ctx.fillStyle=color;
+        ctx.fillText(labels[kind],208,itemY);
+        canvasFont(ctx,22,"700");ctx.fillStyle="#f0f2f6";
+        let title=e.title||"Wydarzenie";
+        if(title.length>32)title=title.slice(0,30)+"…";
+        const titleX=330;
+        ctx.fillText(title,titleX,itemY);
+        if(e.time){
+          const timeX=titleX+ctx.measureText(title).width+18;
+          ctx.textAlign="left";canvasFont(ctx,22,"900");ctx.fillStyle="#ffffff";
+          ctx.fillText(e.time,timeX,itemY);
+        }
+      });
+      rowY+=Math.max(1,group.items.length)*32+18;
+    });
+  }
+
+  const footerY=canvas.height-28;
+  ctx.fillStyle="#d93645";ctx.fillRect(45,footerY-4,width-90,3);
+  ctx.textAlign="right";ctx.fillStyle="#aab2c0";canvasFont(ctx,13,"700");
+  ctx.fillText("MALAJIOS COMMUNITY",width-55,footerY+10);
+  return new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
+}
+$("sendDiscord").addEventListener("click",async()=>{
+  const url=$("webhookUrl").value.trim();
+  const status=$("sendStatus");
+  if(!url.startsWith("https://discord.com/api/webhooks/") &&
+     !url.startsWith("https://discordapp.com/api/webhooks/")){
+    status.textContent="Wklej prawidłowy adres webhooka Discord.";
+    return;
+  }
+
+  const oldUrl=localStorage.getItem("malajios_calendar_webhook") || "";
+  if(oldUrl!==url){
+    // ID kalendarzy należy do konkretnego webhooka, więc czyścimy tylko mapę kalendarzy.
+    // ID powiadomienia zachowujemy, aby można było usunąć je także ze starego webhooka.
+    localStorage.removeItem("malajios_calendar_message_ids");
+  }
+  localStorage.setItem("malajios_calendar_webhook",url);
+
+  const button=$("sendDiscord");button.disabled=true;button.textContent="Aktualizowanie…";
+  status.textContent="Przygotowuję kalendarz…";
+  try{
+    const png=await makeCalendarPng();
+    if(!png)throw new Error("Nie udało się przygotować obrazu PNG.");
+
+    const monthKey=`${shown.getFullYear()}-${pad(shown.getMonth()+1)}`;
+    let messageMap={};
+    try{
+      messageMap=JSON.parse(localStorage.getItem("malajios_calendar_message_ids")||"{}");
+    }catch(e){
+      messageMap={};
+    }
+
+    const content=`📅 **MALAJIOS COMMUNITY – ${monthNames[shown.getMonth()]} ${shown.getFullYear()}**`;
+    const form=new FormData();
+    const messageId=messageMap[monthKey];
+
+    if(messageId){
+      form.append("payload_json",JSON.stringify({
+        content,
+        attachments:[{id:0,filename:"malajios-calendar.png"}]
+      }));
+      form.append("files[0]",png,"malajios-calendar.png");
+      const editUrl=url.replace(/\/$/,"")+"/messages/"+encodeURIComponent(messageId);
+      const response=await fetch(editUrl,{method:"PATCH",body:form});
+      if(!response.ok){
+        if(response.status===404){
+          delete messageMap[monthKey];
+          localStorage.setItem("malajios_calendar_message_ids",JSON.stringify(messageMap));
+        }else{
+          throw new Error(`Discord zwrócił błąd HTTP ${response.status} podczas aktualizacji kalendarza.`);
+        }
+      }else{
+        status.textContent="Kalendarz zaktualizowany. Odświeżam komunikat…";
+      }
+    }
+
+    if(!messageMap[monthKey]){
+      const firstForm=new FormData();
+      firstForm.append("payload_json",JSON.stringify({content}));
+      firstForm.append("files[0]",png,"malajios-calendar.png");
+      const separator=url.includes("?")?"&":"?";
+      const response=await fetch(url+separator+"wait=true",{method:"POST",body:firstForm});
+      if(!response.ok)throw new Error(`Discord zwrócił błąd HTTP ${response.status} podczas publikacji kalendarza.`);
+      const message=await response.json();
+      if(!message.id)throw new Error("Discord nie zwrócił ID wiadomości kalendarza.");
+      messageMap[monthKey]=message.id;
+      localStorage.setItem("malajios_calendar_message_ids",JSON.stringify(messageMap));
+    }
+
+    // Usuń poprzednie powiadomienie, a dopiero potem wyślij jedno nowe.
+    const oldNoticeId=localStorage.getItem("malajios_calendar_notice_id");
+    const oldNoticeWebhook=localStorage.getItem("malajios_calendar_notice_webhook") || url;
+    if(oldNoticeId){
+      const deleteBase=oldNoticeWebhook.split("?")[0].replace(/\\/$/,"");
+      const deleteUrl=deleteBase+"/messages/"+encodeURIComponent(oldNoticeId);
+      const deleteResponse=await fetch(deleteUrl,{method:"DELETE"});
+      if(!deleteResponse.ok && deleteResponse.status!==404){
+        throw new Error(`Kalendarz został zapisany, ale nie udało się usunąć poprzedniego komunikatu (HTTP ${deleteResponse.status}).`);
+      }
+      localStorage.removeItem("malajios_calendar_notice_id");
+      localStorage.removeItem("malajios_calendar_notice_webhook");
+    }
+
+    const noticeForm=new FormData();
+    noticeForm.append("payload_json",JSON.stringify({
+      content:`🔔 **Kalendarz został zaktualizowany – ${monthNames[shown.getMonth()]} ${shown.getFullYear()}**`
+    }));
+    const separator=url.includes("?")?"&":"?";
+    const noticeResponse=await fetch(url+separator+"wait=true",{method:"POST",body:noticeForm});
+    if(!noticeResponse.ok)throw new Error(`Kalendarz został opublikowany, ale Discord nie wysłał komunikatu (HTTP ${noticeResponse.status}).`);
+    const notice=await noticeResponse.json();
+    if(!notice.id)throw new Error("Discord nie zwrócił ID komunikatu o aktualizacji.");
+    localStorage.setItem("malajios_calendar_notice_id",notice.id);
+    localStorage.setItem("malajios_calendar_notice_webhook",url);
+
+    status.textContent=`✅ Kalendarz ${monthNames[shown.getMonth()]} ${shown.getFullYear()} został opublikowany lub zaktualizowany. Poprzednie powiadomienie usunięto i wysłano jedno nowe.`;
+  }catch(err){
+    status.textContent="Nie udało się zakończyć publikacji. "+err.message+
+      " Jeśli przeglądarka zgłasza błąd sieci/CORS, trzeba będzie użyć bota przez serwer.";
+  }finally{
+    button.disabled=false;button.textContent="Wyślij / aktualizuj kalendarz";
+  }
+});
+
+render();
+</script>
+</body>
+</html>
