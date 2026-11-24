@@ -148,7 +148,7 @@ input,select{width:100%;padding:11px;border-radius:8px;border:1px solid var(--li
 
 <script>
 const monthNames=["Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"];
-const typeNames={training:"Trening",race:"Wyścig",live:"LIVE",league:"Liga",sparing:"Sparing"};
+const typeNames={training:"Trening",race:"Wyścig",live:"Live",league:"Liga",sparing:"Sparing"};
 const typeClasses={training:"training",race:"race",live:"live",league:"league",sparing:"sparing"};
 const storageKey="srs_calendar_events_v2";
 let events=[];
@@ -277,7 +277,7 @@ function makeCalendarPng(){
   canvas.width=width;canvas.height=top+weeks*cellH+150+listHeight+80;
   const ctx=canvas.getContext("2d");
   const colors={training:"#19a65b",race:"#2878ef",live:"#ed2638",league:"#a33bd1",sparing:"#f18a20"};
-  const labels={training:"TRENING",race:"WYŚCIG",live:"LIVE",league:"LIGA",sparing:"SPARING"};
+  const labels={training:"TRENING",race:"WYŚCIG",live:"Live",league:"LIGA",sparing:"SPARING"};
   function rr(x,y,w,h,r,fill,stroke=null,lw=1){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.lineWidth=lw;ctx.strokeStyle=stroke;ctx.stroke()}}
   function text(t,x,y,size,weight="700",color="#fff",align="left"){ctx.font=`${weight} ${size}px Arial,sans-serif`;ctx.fillStyle=color;ctx.textAlign=align;ctx.textBaseline="middle";ctx.fillText(t,x,y)}
   // Carbon-like dark background with subtle diagonal racing stripes.
@@ -314,7 +314,7 @@ function makeCalendarPng(){
   ctx.strokeStyle="#252a33";ctx.lineWidth=4;for(let r=0;r<=weeks;r++){const yy=top+r*cellH-2;ctx.beginPath();ctx.moveTo(left,yy);ctx.lineTo(left+7*cellW-3,yy);ctx.stroke()}
   // Color legend.
   const legendY=top+weeks*cellH+24;rr(48,legendY,1504,52,10,"#171a21","#555d6b",2);
-  const legend=[...[['TRENING',colors.training],['WYŚCIG',colors.race],['LIVE',colors.live],['SPARING',colors.sparing],['LIGA',colors.league]]];
+  const legend=[...[['TRENING',colors.training],['WYŚCIG',colors.race],['Live',colors.live],['SPARING',colors.sparing],['LIGA',colors.league]]];
   legend.forEach((it,i)=>{const x=75+i*300;rr(x,legendY+13,38,25,8,it[1]);text(it[0],x+51,legendY+26,19,"900","#fff")});
   // Event list with red title plate and individual dark rows.
   const listTop=legendY+88;rr(48,listTop-20,540,44,5,"#b51f2b");text("NAJBLIŻSZE WYDARZENIA",68,listTop+2,25,"900 italic","#fff");
